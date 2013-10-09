@@ -1,8 +1,8 @@
 Windows
 	Run
-		java -cp .;stdlib.jar;slick;slick/lib;slick/lib/* -Djava.library.path=slick Flatland
+		java -cp .;jbox2d/;slick;slick/lib;slick/lib/* -Djava.library.path=slick Flatland
 	Compile
-		javac -cp .;stdlib.jar;slick;slick/lib;slick/lib/* *.java
+		javac -cp .;jbox2d/;slick;slick/lib;slick/lib/* *.java
 
 Mac
 	Run
