@@ -11,6 +11,7 @@ import org.jbox2d.profile.*;
 
 import java.awt.Toolkit;
 import java.awt.Dimension;
+import java.util.*;
 
 public class Flatland extends BasicGame {
 
@@ -36,13 +37,13 @@ public class Flatland extends BasicGame {
 		}
 	}
 
-	public World world;
+	public FlatlandWorld world;
 
 	@Override
 	public void init(GameContainer container) throws SlickException {
-		world = new World(new Vec2(0.0f, 0.0f));
+		world = new FlatlandWorld(new Vec2(0.0f, 0.0f));
 
-		Vec2[] vecs1 = {new Vec2(1.0f, 1.0f), new Vec2(1.0f, -1.0f), new Vec2(-1.0f, -1.0f), new Vec2(-1.0f, 1.0f), new Vec2(1.0f, 1.0f)};
+		Vec2[] vecs1 = {new Vec2(1.0f, 1.0f), new Vec2(1.0f, -1.0f), new Vec2(-1.0f, -1.0f), new Vec2(-1.0f, 1.0f), new Vec2(1.0f, 1.0f), new Vec2(5.0f, 5.0f)};
 		Vec2[] vecs2 = {new Vec2(2.0f, 2.0f), new Vec2(2.0f, -2.0f), new Vec2(-2.0f, -2.0f), new Vec2(-2.0f, 2.0f), new Vec2(2.0f, 2.0f)};
 		Vec2[] vecs3 = {new Vec2(3.0f, -3.0f), new Vec2(3.0f, 0.0f), new Vec2(-3.0f, 0.0f)};
 
@@ -54,14 +55,15 @@ public class Flatland extends BasicGame {
 
 		PolygonShape polygonShape3 = new PolygonShape();
 		polygonShape3.set(vecs3, vecs3.length);
+		polygonShape3.setAsBox(5.0f, 3.0f);
 
 		BodyDef bodyDef1 = new BodyDef();
 		bodyDef1.position = new Vec2(0.0f, 10.0f);
 		bodyDef1.fixedRotation = false;
-		bodyDef1.angularVelocity = 0f;
+		bodyDef1.angularVelocity = 7.0f;
 		bodyDef1.active = true;
 		bodyDef1.angle = 0.0f;
-		bodyDef1.linearDamping = 0.0f;
+		bodyDef1.linearDamping = 1.0f;
 		bodyDef1.type = BodyType.DYNAMIC;
 
 		BodyDef bodyDef2 = new BodyDef();
@@ -86,12 +88,33 @@ public class Flatland extends BasicGame {
 	
 
 		Body body;
+		FixtureDef fixtureDef;
+
 		body = world.createBody(bodyDef1);
-		body.createFixture(polygonShape1, 1.0f);
+		fixtureDef = new FixtureDef();
+		fixtureDef.restitution = 0.5f;
+		fixtureDef.shape = polygonShape1;
+		fixtureDef.density = 1.0f;
+		body.createFixture(fixtureDef);
+
 		body = world.createBody(bodyDef2);
-		body.createFixture(polygonShape2, 1.0f);
+		fixtureDef = new FixtureDef();
+		fixtureDef.restitution = 0.5f;
+		fixtureDef.shape = polygonShape2;
+		fixtureDef.density = 1.0f;
+		body.createFixture(fixtureDef);
+
 		body = world.createBody(bodyDef3);
-		body.createFixture(polygonShape3, 1.0f);
+		fixtureDef = new FixtureDef();
+		fixtureDef.restitution = 0.5f;
+		fixtureDef.shape = polygonShape3;
+		fixtureDef.density = 1.0f;
+		body.createFixture(fixtureDef);
+
+		world.setRenderTranslation(500.0f, 500.0f);
+		world.setRenderScalar(20.0f);
+
+		world.createHouse(new Vec2(4.0f, 4.0f), 10.0f);
 	}
 
 	@Override
@@ -99,41 +122,11 @@ public class Flatland extends BasicGame {
 		world.step(1.0f/60.0f, 12, 8);
 	}
 
-	public static final float RENDER_SCALAR = 10.0f;
-	public static final float RENDER_TRANS_X = 500.0f;
-	public static final float RENDER_TRANS_Y = 500.0f;
-
 	public void render(GameContainer container, Graphics g) throws SlickException {
-		Body thisBody = world.getBodyList();
-		for (int i = 0; i < world.getBodyCount(); i++) {
-			Fixture thisFixture = thisBody.getFixtureList();
-			while (thisFixture != null) {
-				PolygonShape shape = (PolygonShape)thisFixture.getShape();
-				Vec2[] jboxPoints = shape.getVertices();
-				float[] slickPoints = new float[jboxPoints.length];
-				for (int j = 0; j < shape.getVertexCount(); j++) {
-					Vec2 point = thisBody.getWorldPoint(jboxPoints[j]);
-					slickPoints[2*j] = point.x*RENDER_SCALAR+RENDER_TRANS_X;
-					slickPoints[2*j+1] = point.y*RENDER_SCALAR+RENDER_TRANS_Y;
-				}
-				// if (i == 0) {
-					for (int j = 0; j < jboxPoints.length; j++) {
-						System.out.print(jboxPoints[j] + ", ");
-					}
-					System.out.println();
-					for (int j = 0; j < slickPoints.length; j++) {
-						System.out.print(slickPoints[j] + ", ");
-					}
-					System.out.println();
-					System.out.println();
-				// }
-				Polygon slickPoly = new Polygon(slickPoints);
-				g.draw(slickPoly);
-				thisFixture = thisFixture.getNext();
-			}
-			thisBody = thisBody.getNext();
-		}
-
+		g.setBackground(Color.white);
+		g.setColor(Color.black);
+		g.setLineWidth(2.0f);
+		world.render(container, g);
 	}
 
 }
