@@ -25,15 +25,62 @@ public class FlatlandWorld extends SlickWorld {
 		HOUSE_VECTORS = vecs;
 	}
 
+	private ArrayList<Entity> entities = new ArrayList<Entity>();
+
 	public FlatlandWorld(Vec2 gravity) {
 		super(gravity);
 	}
 
-	public void createHouse(Vec2 position, float radius) {
-		createHouse(position, radius, 0.0f);
+	public void setFocus(Entity entity) {
+		Body body = entity.getBody();
+		this.setFocus(body);
 	}
 
-	public void createHouse(Vec2 position, float radius, float angle) {
+	public Body createPlayer(Vec2 position, float sideLength) {
+		// !!! most code copied from createSquareMan, should reconcile if possible !!!
+		PolygonShape polygonShape = new PolygonShape();
+		// polygonShape.setAsBox(sideLength, sideLength);
+
+		polygonShape.set(HOUSE_VECTORS, HOUSE_VECTORS.length);
+
+		BodyDef bodyDef = new BodyDef();
+		bodyDef.position = position;
+		bodyDef.active = true;
+		bodyDef.type = BodyType.DYNAMIC;
+		bodyDef.linearDamping = 1.0f;
+		bodyDef.angularDamping = 4.0f;
+
+		Body body = this.createBody(bodyDef);
+		body.createFixture(polygonShape, 1.0f);
+		Player player = new Player(body);
+		body.setUserData(player);
+		entities.add(player);
+		return body;
+
+	}
+
+	public Body createSquareMan(Vec2 position, float sideLength) {
+		PolygonShape polygonShape = new PolygonShape();
+		polygonShape.setAsBox(sideLength, sideLength);
+
+		BodyDef bodyDef = new BodyDef();
+		bodyDef.position = position;
+		bodyDef.active = true;
+		bodyDef.type = BodyType.DYNAMIC;
+
+		Body body = this.createBody(bodyDef);
+		body.createFixture(polygonShape, 1.0f);
+		Person person = new Person(body);
+		body.setUserData(person);
+		entities.add(person);
+		return body;
+	}
+
+	public Body createHouse(Vec2 position, float radius) {
+		return createHouse(position, radius, 0.0f);
+	}
+
+	public Body createHouse(Vec2 position, float radius, float angle) {
 		Vec2[] vecs = new Vec2[HOUSE_VECTORS.length];
 		for (int i = 0; i < vecs.length; i++) {
 			vecs[i] = HOUSE_VECTORS[i].mul(radius);
@@ -50,8 +97,17 @@ public class FlatlandWorld extends SlickWorld {
 
 		Body body = this.createBody(bodyDef);
 		body.createFixture(chainShape, 1.0f);
+		Entity entity = new Entity(body);
+		body.setUserData(entity);
+		entities.add(entity);
+		return body;
+	}
 
-
+	public void update(GameContainer container, int delta) {
+		super.update(container, delta);
+		for (Entity entity : entities) {
+			entity.update(container, delta);
+		}
 	}
 
 }

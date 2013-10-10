@@ -17,6 +17,7 @@ public class SlickWorld extends World {
 
 	private float renderScalar = 10.0f;
 	private Vec2 renderTranslation = new Vec2(0.0f, 0.0f);
+	private Body focus;
 
 	public SlickWorld(Vec2 gravity) {
 		super(gravity);
@@ -42,9 +43,13 @@ public class SlickWorld extends World {
 		return new Vec2(renderTranslation);
 	}
 
+	public void setFocus(Body body) {
+		this.focus = body;
+	}
+
 	public void renderPolygonShape(GameContainer container, Graphics g, PolygonShape shape, Body body) {
 		Vec2[] jboxPoints = shape.getVertices();
-		float[] slickPoints = new float[jboxPoints.length];
+		float[] slickPoints = new float[shape.getVertexCount()*2];
 		for (int i = 0; i < shape.getVertexCount(); i++) {
 			Vec2 point = body.getWorldPoint(jboxPoints[i]);
 			slickPoints[2*i] = point.x*renderScalar+renderTranslation.x;
@@ -65,6 +70,13 @@ public class SlickWorld extends World {
 			float x2 = point2.x*renderScalar+renderTranslation.x;
 			float y2 = point2.y*renderScalar+renderTranslation.y;
 			g.drawLine(x1, y1, x2, y2);
+		}
+	}
+
+	public void update(GameContainer container, int delta) {
+		this.step(1.0f/60.0f, 12, 8);
+		if (focus != null) {
+			renderTranslation = focus.getPosition();
 		}
 	}
 
