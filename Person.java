@@ -20,9 +20,10 @@ public class Person extends Entity {
 	}
 
 	public float getDesiredAngle() {
-		Body body = this.getBody();
-		Vec2 vel = body.getLinearVelocity();
-		return (float)Math.atan(vel.x/vel.y);
+		// Body body = this.getBody();
+		// Vec2 vel = body.getLinearVelocity();
+		// return (float)Math.atan(vel.x/vel.y) + (float)Math.PI;
+		return 0.0f;
 	}
 
 	public void update(GameContainer container, int delta) {
@@ -31,10 +32,10 @@ public class Person extends Entity {
 		Body body = this.getBody();
 
 		// adjust angle
-		if (body.getAngle() < getDesiredAngle())
-			body.applyTorque(5.0f);
-		else if (body.getAngle() > getDesiredAngle())
-			body.applyTorque(-5.0f);
+		if (body.getAngle() % 2.0f*(float)Math.PI < getDesiredAngle())
+			body.applyTorque(10.0f);
+		else if (body.getAngle() % 2.0f*(float)Math.PI > getDesiredAngle())
+			body.applyTorque(-10.0f);
 
 	}
 

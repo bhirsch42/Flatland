@@ -116,7 +116,8 @@ public class Flatland extends BasicGame {
 
 		world.createHouse(new Vec2(4.0f, 4.0f), 10.0f);
 		world.createSquareMan(new Vec2(4.0f, 4.0f), 1.0f);
-		world.createPlayer(new Vec2(1.0f, 1.0f), 1.0f);
+		Body focus = world.createPlayer(new Vec2(1.0f, 1.0f), 1.0f);
+		world.setFocus(focus);
 	}
 
 	@Override

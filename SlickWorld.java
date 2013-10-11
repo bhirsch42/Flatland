@@ -18,6 +18,7 @@ public class SlickWorld extends World {
 	private float renderScalar = 10.0f;
 	private Vec2 renderTranslation = new Vec2(0.0f, 0.0f);
 	private Body focus;
+	private float smoothPan = 0.9f;
 
 	public SlickWorld(Vec2 gravity) {
 		super(gravity);
@@ -73,10 +74,25 @@ public class SlickWorld extends World {
 		}
 	}
 
+	public void setSmoothPan(float smoothPan) {
+		this.smoothPan = smoothPan;
+	}
+
+	private Vec2 lastTranslation = null;
 	public void update(GameContainer container, int delta) {
 		this.step(1.0f/60.0f, 12, 8);
 		if (focus != null) {
-			renderTranslation = focus.getPosition();
+			if (lastTranslation != null) {
+				Vec2 newTranslation = focus.getPosition().mul(-1.0f).mul(renderScalar).add(new Vec2((float)container.getWidth()/2.0f, (float)container.getHeight()/2.0f));
+				renderTranslation.x = (lastTranslation.x*(1.0f+smoothPan)+newTranslation.x*(1.0f-smoothPan))/2.0f;
+				renderTranslation.y = (lastTranslation.y*(1.0f+smoothPan)+newTranslation.y*(1.0f-smoothPan))/2.0f;
+				lastTranslation = new Vec2(renderTranslation);
+
+			}
+			else {
+				renderTranslation = focus.getPosition().mul(-1.0f).mul(renderScalar).add(new Vec2((float)container.getWidth()/2.0f, (float)container.getHeight()/2.0f));
+				lastTranslation = new Vec2(renderTranslation);
+			}		
 		}
 	}
 

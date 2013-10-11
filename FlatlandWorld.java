@@ -39,9 +39,9 @@ public class FlatlandWorld extends SlickWorld {
 	public Body createPlayer(Vec2 position, float sideLength) {
 		// !!! most code copied from createSquareMan, should reconcile if possible !!!
 		PolygonShape polygonShape = new PolygonShape();
-		// polygonShape.setAsBox(sideLength, sideLength);
+		polygonShape.setAsBox(sideLength, sideLength);
 
-		polygonShape.set(HOUSE_VECTORS, HOUSE_VECTORS.length);
+		// polygonShape.set(HOUSE_VECTORS, HOUSE_VECTORS.length);
 
 		BodyDef bodyDef = new BodyDef();
 		bodyDef.position = position;
@@ -66,6 +66,8 @@ public class FlatlandWorld extends SlickWorld {
 		BodyDef bodyDef = new BodyDef();
 		bodyDef.position = position;
 		bodyDef.active = true;
+		bodyDef.linearDamping = 1.0f;
+		bodyDef.angularDamping = 4.0f;
 		bodyDef.type = BodyType.DYNAMIC;
 
 		Body body = this.createBody(bodyDef);
