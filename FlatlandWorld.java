@@ -22,10 +22,12 @@ public class FlatlandWorld extends SlickWorld {
 		float s1 = (float)((1.0/4.0)*Math.sqrt(10.0+2.0*Math.sqrt(5.0)));
 		float s2 = (float)((1.0/4.0)*Math.sqrt(10.0-2.0*Math.sqrt(5.0)));
 		Vec2[] vecs = {new Vec2(0.0f, 1.0f), new Vec2(s1, c1), new Vec2(s2, -c2), new Vec2(-s2, -c2), new Vec2(-s1, c1)};
-		HOUSE_VECTORS = vecs;
+		Vec2[] vecs1 ={new Vec2(-s2+0.3f, -c2), new Vec2(-s2, -c2), new Vec2(-s1, c1), new Vec2(0.0f, 1.0f), new Vec2(s1, c1), new Vec2(s2, -c2), new Vec2(s2-0.3f, -c2)};
+		HOUSE_VECTORS = vecs1;
 	}
 
 	private ArrayList<Entity> entities = new ArrayList<Entity>();
+	private Player player = null;
 
 	public FlatlandWorld(Vec2 gravity) {
 		super(gravity);
@@ -34,6 +36,12 @@ public class FlatlandWorld extends SlickWorld {
 	public void setFocus(Entity entity) {
 		Body body = entity.getBody();
 		this.setFocus(body);
+	}
+
+	public Player getPlayer() {
+		if (player == null)
+			System.err.println("No player initialized in FlatWorld.");
+		return player;
 	}
 
 	public Body createPlayer(Vec2 position, float sideLength) {
@@ -55,9 +63,36 @@ public class FlatlandWorld extends SlickWorld {
 		Player player = new Player(body);
 		body.setUserData(player);
 		entities.add(player);
+		this.player = player;
 		return body;
 
 	}
+
+	public Body createRaindrop(Vec2 position) {
+		PolygonShape polygonShape = new PolygonShape();
+		polygonShape.setAsBox(.02f, .2f);
+
+		BodyDef bodyDef = new BodyDef();
+		bodyDef.position = position;
+		bodyDef.active = true;
+		bodyDef.linearDamping = 5.0f;
+		bodyDef.angularDamping = 10.0f;
+		// bodyDef.fixedRotation = true;
+		bodyDef.type = BodyType.DYNAMIC;
+
+		Body body = this.createBody(bodyDef);
+		Fixture fixture = body.createFixture(polygonShape, 1.0f);
+		fixture.setFriction(0.0f);
+		fixture.setDensity(0.0f);
+		fixture.setRestitution(0.5f);
+		Raindrop raindrop = new Raindrop(body);
+		body.setUserData(raindrop);
+		entities.add(raindrop);
+		return body;
+
+	}
+
+
 
 	public Body createSquareMan(Vec2 position, float sideLength) {
 		PolygonShape polygonShape = new PolygonShape();
@@ -75,6 +110,25 @@ public class FlatlandWorld extends SlickWorld {
 		Person person = new Person(body);
 		body.setUserData(person);
 		entities.add(person);
+		return body;
+	}
+
+	public Body createSquareDialogueMan(Vec2 position, float sideLength, String[] dialogue) {
+		PolygonShape polygonShape = new PolygonShape();
+		polygonShape.setAsBox(sideLength, sideLength);
+
+		BodyDef bodyDef = new BodyDef();
+		bodyDef.position = position;
+		bodyDef.active = true;
+		bodyDef.linearDamping = 1.0f;
+		bodyDef.angularDamping = 4.0f;
+		bodyDef.type = BodyType.DYNAMIC;
+
+		Body body = this.createBody(bodyDef);
+		body.createFixture(polygonShape, 1.0f);
+		DialoguePerson dialoguePerson = new DialoguePerson(body, dialogue);
+		body.setUserData(dialoguePerson);
+		entities.add(dialoguePerson);
 		return body;
 	}
 
@@ -109,6 +163,32 @@ public class FlatlandWorld extends SlickWorld {
 		super.update(container, delta);
 		for (Entity entity : entities) {
 			entity.update(container, delta);
+		}
+	}
+
+	public void render(GameContainer container, Graphics g) {
+		Body thisBody = this.getBodyList();
+		for (int i = 0; i < this.getBodyCount(); i++) {
+			// entity behind shapes
+			Entity entity = (Entity)thisBody.getUserData();
+			// shapes
+			Fixture thisFixture = thisBody.getFixtureList();
+			while (thisFixture != null) {
+				Shape shape = thisFixture.getShape();
+				if (shape instanceof PolygonShape) {
+					renderPolygonShape(container, g, (PolygonShape)shape, thisBody);
+				}
+				else if (shape instanceof ChainShape) {
+					renderChainShape(container, g, (ChainShape)shape, thisBody);
+				}
+				else if (shape instanceof CircleShape) {
+					renderCircleShape(container, g, (CircleShape)shape, thisBody);
+				}
+				thisFixture = thisFixture.getNext();				
+			}
+			// entity in front of shapes
+			entity.render(container, g);
+			thisBody = thisBody.getNext();
 		}
 	}
 

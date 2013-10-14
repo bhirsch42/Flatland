@@ -16,6 +16,7 @@ import java.util.*;
 public class Entity {
 
 	private Body body;
+	private boolean runningEvent = false;
 
 	public Entity(Body body) {
 		this.body = body;
@@ -25,7 +26,19 @@ public class Entity {
 		return body;
 	}
 
+	public boolean isRunningEvent() {
+		return runningEvent;
+	}
+
+	public void setRunningEvent(boolean r) {
+		runningEvent = r;
+	}
+
 	public void update(GameContainer container, int delta) {
+
+	}
+
+	public void render(GameContainer container, Graphics g) {
 
 	}
 

@@ -15,17 +15,29 @@ import java.util.*;
 
 public class SlickWorld extends World {
 
-	private float renderScalar = 10.0f;
+	private final float DEFAULT_RENDER_SCALAR = 20.0f;
+	private final float DEFAULT_SMOOTH_PAN = 0.9f;
+	private final float DEFAULT_SMOOTH_ZOOM = 0.99f;
+
+	private float renderScalar = DEFAULT_RENDER_SCALAR;
+	private float newRenderScalar = DEFAULT_RENDER_SCALAR;
 	private Vec2 renderTranslation = new Vec2(0.0f, 0.0f);
 	private Body focus;
-	private float smoothPan = 0.9f;
+	private Vec2 fixedFocus;
+	private boolean focusFixed = false;
+	private float smoothPan = DEFAULT_SMOOTH_PAN;
+	private float smoothZoom = DEFAULT_SMOOTH_ZOOM;
 
 	public SlickWorld(Vec2 gravity) {
 		super(gravity);
 	}
 
 	public void setRenderScalar(float renderScalar) {
-		this.renderScalar = renderScalar;
+		this.newRenderScalar = renderScalar;
+	}
+
+	public void setRenderScalar() {
+		this.newRenderScalar = DEFAULT_RENDER_SCALAR;
 	}
 
 	public float getRenderScalar() {
@@ -45,7 +57,13 @@ public class SlickWorld extends World {
 	}
 
 	public void setFocus(Body body) {
+		focusFixed = false;
 		this.focus = body;
+	}
+
+	public void setFocus(Vec2 vec) {
+		focusFixed = true;
+		this.fixedFocus = new Vec2(vec);
 	}
 
 	public void renderPolygonShape(GameContainer container, Graphics g, PolygonShape shape, Body body) {
@@ -74,16 +92,32 @@ public class SlickWorld extends World {
 		}
 	}
 
+	public void renderCircleShape(GameContainer container, Graphics g, CircleShape shape, Body body) {
+		Vec2 center = body.getWorldCenter();
+		g.drawOval((center.x-shape.m_radius/1.0f)*renderScalar+renderTranslation.x, (center.y-shape.m_radius/1.0f)*renderScalar+renderTranslation.y, shape.m_radius*2.0f*renderScalar, shape.m_radius*2.0f*renderScalar);
+	}
+
 	public void setSmoothPan(float smoothPan) {
 		this.smoothPan = smoothPan;
 	}
 
+	public void setSmoothPan() {
+		this.smoothPan = DEFAULT_SMOOTH_PAN;
+	}
+
 	private Vec2 lastTranslation = null;
 	public void update(GameContainer container, int delta) {
-		this.step(1.0f/60.0f, 12, 8);
+		// this.step(1.0f/60.0f, 12, 8);
+		this.step((float)delta/500.0f, 12, 8);
+		
+		// translation, with smooth pan
 		if (focus != null) {
 			if (lastTranslation != null) {
-				Vec2 newTranslation = focus.getPosition().mul(-1.0f).mul(renderScalar).add(new Vec2((float)container.getWidth()/2.0f, (float)container.getHeight()/2.0f));
+				Vec2 newTranslation;
+				if (focusFixed)
+					newTranslation = fixedFocus.mul(-1.0f).mul(renderScalar).add(new Vec2((float)container.getWidth()/2.0f, (float)container.getHeight()/2.0f));
+				else
+					newTranslation = focus.getPosition().mul(-1.0f).mul(renderScalar).add(new Vec2((float)container.getWidth()/2.0f, (float)container.getHeight()/2.0f));
 				renderTranslation.x = (lastTranslation.x*(1.0f+smoothPan)+newTranslation.x*(1.0f-smoothPan))/2.0f;
 				renderTranslation.y = (lastTranslation.y*(1.0f+smoothPan)+newTranslation.y*(1.0f-smoothPan))/2.0f;
 				lastTranslation = new Vec2(renderTranslation);
@@ -94,6 +128,9 @@ public class SlickWorld extends World {
 				lastTranslation = new Vec2(renderTranslation);
 			}		
 		}
+
+		// scaling, with smooth zoom
+		renderScalar = (renderScalar*(1.0f+smoothZoom)+newRenderScalar*(1.0f-smoothZoom))/2.0f;
 	}
 
 	public void render(GameContainer container, Graphics g) {
@@ -107,6 +144,9 @@ public class SlickWorld extends World {
 				}
 				else if (shape instanceof ChainShape) {
 					renderChainShape(container, g, (ChainShape)shape, thisBody);
+				}
+				else if (shape instanceof CircleShape) {
+					renderCircleShape(container, g, (CircleShape)shape, thisBody);
 				}
 				thisFixture = thisFixture.getNext();
 			}
